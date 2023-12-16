@@ -14,7 +14,7 @@ const AuthLayout = () => {
                         <Outlet />
                     </section>
 
-                    <img src="/assets/images/aigram-half-page.png" alt="logo" className="hidden xl:block h-screen w-1/2 object-cover bg-no-repeat" />
+                    <img src="/assets/images/aigram-right.png" alt="logo" className="hidden xl:block h-screen w-1/2 object-cover bg-no-repeat" />
 
                 </>
             )}
