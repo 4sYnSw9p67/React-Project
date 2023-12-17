@@ -98,6 +98,11 @@ export async function signInAccount(user: {
     }
 }
 
+/**
+ * Retrieves the current user from the database.
+ *
+ * @return {Promise<Document>} The document representing the current user.
+ */
 export async function getCurrentUser() {
     try {
         const currentAccount = await account.get();

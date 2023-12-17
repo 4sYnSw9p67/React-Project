@@ -22,10 +22,6 @@ import { useCreateUserAccount, useSignInAccount } from "@/lib/react-query/querie
 import { useUserContext } from "@/context/AuthContext"
 
 
-
-
-
-
 const SignupForm = () => {
     const { toast } = useToast();
     const { checkAuthUser, isLoading: isUserLoading } = useUserContext();

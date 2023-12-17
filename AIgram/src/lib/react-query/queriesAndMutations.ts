@@ -15,7 +15,7 @@ import { NewUser } from '@/types';
  */
 export const useCreateUserAccount = () => {
     return useMutation({
-        mutationFn: (user: NewUser) => createUserAccount(user)
+        mutationFn: (user: NewUser) => createUserAccount(user),
     });
 }
 
@@ -28,8 +28,8 @@ export const useSignInAccount = () => {
     return useMutation({
         mutationFn: (user: {
             email: string,
-            password: string
+            password: string,
         }
-        ) => signInAccount(user)
+        ) => signInAccount(user),
     });
 }
