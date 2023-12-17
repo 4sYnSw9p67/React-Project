@@ -2,12 +2,14 @@ import React from 'react';
 import './globals.css';
 
 import { Routes, Route } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster"
 import { Home } from './_root/pages';
 
 import SigninForm from './_auth/forms/SigninForm';
 import SignupForm from './_auth/forms/SignupForm';
 import AuthLayout from './_auth/AuthLayout';
 import RootLayout from './_root/RootLayout';
+
 
 const App = () => {
   return (
@@ -25,6 +27,8 @@ const App = () => {
         </Route>
 
       </Routes>
+
+      <Toaster />
     </main>
   )
 }
