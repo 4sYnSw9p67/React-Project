@@ -128,3 +128,19 @@ export async function getCurrentUser() {
         console.log(error);
     }
 }
+
+/**
+ * Signs out the account.
+ *
+ * @return {Promise<any>} The session object.
+ */
+export async function signOutAccount() {
+    try {
+        const session = await account.deleteSession(
+            "current"
+        );
+        return session;
+    } catch (error) {
+        console.log(error);
+    }
+}

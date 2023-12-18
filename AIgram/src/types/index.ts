@@ -1,4 +1,4 @@
-export type NavLink = {
+export type xNavLink = {
     imgURL: string;
     route: string;
     label: string;

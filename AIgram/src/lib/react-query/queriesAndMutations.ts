@@ -4,7 +4,7 @@ import {
     useQueryClient,
     useInfiniteQuery,
 } from '@tanstack/react-query';
-import { createUserAccount, signInAccount } from '../appwrite/api';
+import { createUserAccount, signInAccount, signOutAccount } from '../appwrite/api';
 import { NewUser } from '@/types';
 
 
@@ -31,5 +31,17 @@ export const useSignInAccount = () => {
             password: string,
         }
         ) => signInAccount(user),
+    });
+}
+
+
+/**
+ * Returns a mutation hook for signing out of an account.
+ *
+ * @return {useMutation} A mutation hook for signing out.
+ */
+export const useSignOutAccount = () => {
+    return useMutation({
+        mutationFn: signOutAccount,
     });
 }
