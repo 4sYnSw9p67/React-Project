@@ -552,3 +552,37 @@ export async function getRecentPosts() {
         console.log(error);
     }
 }
+
+
+// ============================================================
+// USER
+// ============================================================
+
+/**
+ * Retrieves a list of users from the database.
+ *
+ * @param {number} limit - The maximum number of users to retrieve (optional).
+ * @return {Promise<any[]>} A promise that resolves with an array of users.
+ */
+export async function getUsers(limit?: number) {
+    const queries: any[] = [Query.orderDesc("$createdAt")];
+
+    if (limit) {
+        queries.push(Query.limit(limit));
+    }
+
+    try {
+        const users = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.usersCollectionId,
+            queries
+        );
+
+        if (!users) throw Error;
+
+        return users;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
