@@ -4,8 +4,9 @@ import {
     useQueryClient,
     useInfiniteQuery,
 } from '@tanstack/react-query';
-import { createUserAccount, signInAccount, signOutAccount } from '../appwrite/api';
-import { NewUser } from '@/types';
+import { createPost, createUserAccount, signInAccount, signOutAccount, updatePost } from '../appwrite/api';
+import { NewPost, NewUser, UpdatePost } from '@/types';
+import { QUERY_KEYS } from './queryKeys';
 
 // ============================================================
 // AUTH QUERIES
@@ -54,6 +55,11 @@ export const useSignOutAccount = () => {
 // ============================================================
 
 
+/**
+ * A hook that creates a new post.
+ *
+ * @return {MutationFunction} The mutation function used to create a post.
+ */
 export const useCreatePost = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -66,6 +72,11 @@ export const useCreatePost = () => {
     });
 };
 
+/**
+ * Returns a mutation hook for updating a post.
+ *
+ * @return {MutationHook} The mutation hook.
+ */
 export const useUpdatePost = () => {
     const queryClient = useQueryClient();
     return useMutation({

@@ -18,7 +18,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { PostValidation } from "@/lib/validation";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/context/AuthContext"
-import { useCreatePost, useUpdatePost } from "@/lib/react-query/queries";
+import { useCreatePost, useUpdatePost } from "@/lib/react-query/queriesAndMutations";
+import FileUploader from "../shared/FileUploader";
+import Loader from "../shared/Loader";
 
 
 type PostFormProps = {
