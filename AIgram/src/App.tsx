@@ -3,7 +3,17 @@ import './globals.css';
 
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster"
-import { Home } from './_root/pages';
+import {
+  Home,
+  Explore,
+  Saved,
+  CreatePost,
+  Profile,
+  EditPost,
+  PostDetails,
+  UpdateProfile,
+  AllUsers,
+} from "@/_root/pages";
 
 import SigninForm from './_auth/forms/SigninForm';
 import SignupForm from './_auth/forms/SignupForm';
