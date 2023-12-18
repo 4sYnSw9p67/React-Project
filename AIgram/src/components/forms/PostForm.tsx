@@ -11,15 +11,15 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
-    Button,
-    Input,
-    Textarea,
-} from "@/components/ui";
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { PostValidation } from "@/lib/validation";
 import { useToast } from "@/components/ui/use-toast";
-import { useUserContext } from "@/context/AuthContext";
-import { FileUploader, Loader } from "@/components/shared";
+import { useUserContext } from "@/context/AuthContext"
 import { useCreatePost, useUpdatePost } from "@/lib/react-query/queries";
+
 
 type PostFormProps = {
     post?: Models.Document;

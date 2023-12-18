@@ -1,6 +1,10 @@
-import { NewUser } from "@/types";
+import { NewPost, NewUser, UpdatePost } from "@/types";
 import { ID, Query } from "appwrite";
-import { account, appwriteConfig, avatars, databases } from "./config";
+import { account, appwriteConfig, avatars, databases, storage } from "./config";
+
+// ============================================================
+// AUTH
+// ============================================================
 
 /**
  * Creates a new user account with the provided user details.
@@ -140,6 +144,410 @@ export async function signOutAccount() {
             "current"
         );
         return session;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+// ============================================================
+// POSTS
+// ============================================================
+
+/**
+ * Creates a new post.
+ *
+ * @param {NewPost} post - The post object containing the details of the new post.
+ * @return {Promise<any>} A promise that resolves with the newly created post.
+ */
+export async function createPost(post: NewPost) {
+    try {
+        // Upload file to appwrite storage
+        const uploadedFile = await uploadFile(post.file[0]);
+
+        if (!uploadedFile) throw Error;
+
+        // Get file url
+        const fileUrl = getFilePreview(uploadedFile.$id);
+        if (!fileUrl) {
+            await deleteFile(uploadedFile.$id);
+            throw Error;
+        }
+
+        // Convert tags into array
+        const tags = post.tags?.replace(/ /g, "").split(",") || [];
+
+        // Create post
+        const newPost = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            ID.unique(),
+            {
+                creator: post.userId,
+                caption: post.caption,
+                imageUrl: fileUrl,
+                imageId: uploadedFile.$id,
+                location: post.location,
+                tags: tags,
+            }
+        );
+
+        if (!newPost) {
+            await deleteFile(uploadedFile.$id);
+            throw Error;
+        }
+
+        return newPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Uploads a file to the server.
+ *
+ * @param {File} file - The file to be uploaded.
+ * @return {Promise<any>} A promise that resolves with the uploaded file.
+ */
+export async function uploadFile(file: File) {
+    try {
+        const uploadedFile = await storage.createFile(
+            appwriteConfig.storageId,
+            ID.unique(),
+            file
+        );
+
+        return uploadedFile;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Retrieves the file preview URL for a given file ID.
+ *
+ * @param {string} fileId - The ID of the file to retrieve the preview for.
+ * @return {string} The URL of the file preview, or null if the file preview is not available.
+ */
+export function getFilePreview(fileId: string) {
+    try {
+        const fileUrl = storage.getFilePreview(
+            appwriteConfig.storageId,
+            fileId,
+            2000,
+            2000,
+            "top",
+            100
+        );
+
+        if (!fileUrl) throw Error;
+
+        return fileUrl;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Deletes a file.
+ *
+ * @param {string} fileId - The ID of the file to be deleted.
+ * @return {Promise<{ status: string }>} - A promise that resolves to an object with a status property indicating the success of the operation.
+ */
+export async function deleteFile(fileId: string) {
+    try {
+        await storage.deleteFile(appwriteConfig.storageId, fileId);
+
+        return { status: "ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Retrieves posts from the database that match the given search term.
+ *
+ * @param {string} searchTerm - The term to search for in the post captions.
+ * @return {Promise<any>} - A promise that resolves to an array of posts that match the search term.
+ */
+export async function searchPosts(searchTerm: string) {
+    try {
+        const posts = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            [Query.search("caption", searchTerm)]
+        );
+
+        if (!posts) throw Error;
+
+        return posts;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Retrieves a list of infinite posts based on the provided page parameter.
+ *
+ * @param {number} pageParam - The page parameter to determine the starting point of the posts.
+ * @return {Promise<any>} - A promise that resolves to the list of posts.
+ */
+export async function getInfinitePosts({ pageParam }: { pageParam: number }) {
+    const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(9)];
+
+    if (pageParam) {
+        queries.push(Query.cursorAfter(pageParam.toString()));
+    }
+
+    try {
+        const posts = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            queries
+        );
+
+        if (!posts) throw Error;
+
+        return posts;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Retrieves a post by its ID.
+ *
+ * @param {string} postId - The ID of the post to retrieve.
+ * @return {Promise<object>} The retrieved post object.
+ */
+export async function getPostById(postId?: string) {
+    if (!postId) throw Error;
+
+    try {
+        const post = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            postId
+        );
+
+        if (!post) throw Error;
+
+        return post;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Updates a post with new information.
+ *
+ * @param {UpdatePost} post - The post object containing the updated information.
+ * @return {Promise} Returns a promise that resolves to the updated post.
+ */
+export async function updatePost(post: UpdatePost) {
+    const hasFileToUpdate = post.file.length > 0;
+
+    try {
+        let image = {
+            imageUrl: post.imageUrl,
+            imageId: post.imageId,
+        };
+
+        if (hasFileToUpdate) {
+            // Upload new file to appwrite storage
+            const uploadedFile = await uploadFile(post.file[0]);
+            if (!uploadedFile) throw Error;
+
+            // Get new file url
+            const fileUrl = getFilePreview(uploadedFile.$id);
+            if (!fileUrl) {
+                await deleteFile(uploadedFile.$id);
+                throw Error;
+            }
+
+            image = { ...image, imageUrl: fileUrl, imageId: uploadedFile.$id };
+        }
+
+        // Convert tags into array
+        const tags = post.tags?.replace(/ /g, "").split(",") || [];
+
+        //  Update post
+        const updatedPost = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            post.postId,
+            {
+                caption: post.caption,
+                imageUrl: image.imageUrl,
+                imageId: image.imageId,
+                location: post.location,
+                tags: tags,
+            }
+        );
+
+        // Failed to update
+        if (!updatedPost) {
+            // Delete new file that has been recently uploaded
+            if (hasFileToUpdate) {
+                await deleteFile(image.imageId);
+            }
+
+            // If no new file uploaded, just throw error
+            throw Error;
+        }
+
+        // Safely delete old file after successful update
+        if (hasFileToUpdate) {
+            await deleteFile(post.imageId);
+        }
+
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Deletes a post and its associated image.
+ *
+ * @param {string} postId - The ID of the post to delete.
+ * @param {string} imageId - The ID of the image associated with the post.
+ * @return {Promise<{ status: string }>} - A promise that resolves to an object with a status property of "Ok" if the post and image were successfully deleted.
+ */
+export async function deletePost(postId?: string, imageId?: string) {
+    if (!postId || !imageId) return;
+
+    try {
+        const statusCode = await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            postId
+        );
+
+        if (!statusCode) throw Error;
+
+        await deleteFile(imageId);
+
+        return { status: "Ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Updates the likes of a post with the specified postId.
+ *
+ * @param {string} postId - The ID of the post to update the likes for.
+ * @param {string[]} likesArray - An array of strings representing the new likes for the post.
+ * @return {Promise<any>} - A promise that resolves to the updated post object if successful, otherwise an error is thrown.
+ */
+export async function likePost(postId: string, likesArray: string[]) {
+    try {
+        const updatedPost = await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            postId,
+            {
+                likes: likesArray,
+            }
+        );
+
+        if (!updatedPost) throw Error;
+
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Saves a post for a given user.
+ *
+ * @param {string} userId - The ID of the user.
+ * @param {string} postId - The ID of the post.
+ * @return {Promise<object>} The updated post.
+ */
+export async function savePost(userId: string, postId: string) {
+    try {
+        const updatedPost = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.savesCollectionId,
+            ID.unique(),
+            {
+                user: userId,
+                post: postId,
+            }
+        );
+
+        if (!updatedPost) throw Error;
+
+        return updatedPost;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Deletes a saved post with the given record ID.
+ *
+ * @param {string} savedRecordId - The ID of the saved record to delete.
+ * @return {Promise<{ status: string }>} A promise that resolves to an object with a status property of "Ok" upon successful deletion.
+ */
+export async function deleteSavedPost(savedRecordId: string) {
+    try {
+        const statusCode = await databases.deleteDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.savesCollectionId,
+            savedRecordId
+        );
+
+        if (!statusCode) throw Error;
+
+        return { status: "Ok" };
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Retrieves the posts created by a user.
+ *
+ * @param {string} userId - The ID of the user. Optional.
+ * @return {Promise<any>} A promise that resolves to an array of posts created by the user.
+ */
+export async function getUserPosts(userId?: string) {
+    if (!userId) return;
+
+    try {
+        const post = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            [Query.equal("creator", userId), Query.orderDesc("$createdAt")]
+        );
+
+        if (!post) throw Error;
+
+        return post;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+/**
+ * Retrieves the most recent posts from the database.
+ *
+ * @return {Promise<Post[]>} An array of recent posts.
+ */
+export async function getRecentPosts() {
+    try {
+        const posts = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.postsCollectionId,
+            [Query.orderDesc("$createdAt"), Query.limit(20)]
+        );
+
+        if (!posts) throw Error;
+
+        return posts;
     } catch (error) {
         console.log(error);
     }

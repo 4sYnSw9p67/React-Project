@@ -7,6 +7,9 @@ import {
 import { createUserAccount, signInAccount, signOutAccount } from '../appwrite/api';
 import { NewUser } from '@/types';
 
+// ============================================================
+// AUTH QUERIES
+// ============================================================
 
 /**
  * Creates a new user account by using the useMutation hook.
@@ -45,3 +48,33 @@ export const useSignOutAccount = () => {
         mutationFn: signOutAccount,
     });
 }
+
+// ============================================================
+// POST QUERIES
+// ============================================================
+
+
+export const useCreatePost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (post: NewPost) => createPost(post),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+            });
+        },
+    });
+};
+
+export const useUpdatePost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (post: UpdatePost) => updatePost(post),
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
+            });
+        },
+    });
+};
+
