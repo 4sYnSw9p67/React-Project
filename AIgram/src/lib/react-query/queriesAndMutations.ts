@@ -20,7 +20,8 @@ import {
     signInAccount,
     signOutAccount,
     updatePost,
-    getInfinitePosts
+    getInfinitePosts,
+    getUserById
 } from '../appwrite/api';
 import { NewPost, NewUser, UpdatePost } from '@/types';
 import { QUERY_KEYS } from './queryKeys';
@@ -70,7 +71,6 @@ export const useSignOutAccount = () => {
 // ============================================================
 // POST QUERIES
 // ============================================================
-
 
 /**
  * A hook that creates a new post.
@@ -285,6 +285,11 @@ export const useSearchPosts = (searchTerm: string) => {
 // USER QUERIES
 // ============================================================
 
+/**
+ * Retrieves the current user using a query.
+ *
+ * @return {QueryResult} The result of the query with the current user.
+ */
 export const useGetCurrentUser = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
@@ -292,9 +297,29 @@ export const useGetCurrentUser = () => {
     });
 };
 
+/**
+ * Returns a query to get a list of users.
+ *
+ * @param {number} limit - The maximum number of users to retrieve.
+ * @return {Query} The query object for getting users.
+ */
 export const useGetUsers = (limit?: number) => {
     return useQuery({
         queryKey: [QUERY_KEYS.GET_USERS],
         queryFn: () => getUsers(limit),
+    });
+};
+
+/**
+ * Retrieves user information by their ID.
+ *
+ * @param {string} userId - The ID of the user.
+ * @return {unknown} The result of the query to get the user by ID.
+ */
+export const useGetUserById = (userId: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
+        queryFn: () => getUserById(userId),
+        enabled: !!userId,
     });
 };

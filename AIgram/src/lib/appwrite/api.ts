@@ -586,3 +586,24 @@ export async function getUsers(limit?: number) {
     }
 }
 
+/**
+ * Retrieves a user by their unique ID.
+ *
+ * @param {string} userId - The ID of the user to retrieve.
+ * @return {Promise<any>} A promise that resolves with the user object, or null if the user does not exist.
+ */
+export async function getUserById(userId: string) {
+    try {
+        const user = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.usersCollectionId,
+            userId
+        );
+
+        if (!user) throw Error;
+
+        return user;
+    } catch (error) {
+        console.log(error);
+    }
+}
