@@ -32,6 +32,11 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
         (record: Models.Document) => record.post.$id === post.$id
     );
 
+    /**
+     * This code snippet sets the value of isSaved based on 
+     * whether savedPostRecord exists or not. This effect 
+     * is triggered whenever currentUser changes
+     */
     useEffect(() => {
         setIsSaved(!!savedPostRecord);
     }, [currentUser]);
