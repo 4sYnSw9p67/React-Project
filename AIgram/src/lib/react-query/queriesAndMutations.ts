@@ -4,7 +4,24 @@ import {
     useQueryClient,
     useInfiniteQuery,
 } from '@tanstack/react-query';
-import { createPost, createUserAccount, deletePost, deleteSavedPost, getCurrentUser, getPostById, getRecentPosts, getUserPosts, getUsers, likePost, savePost, signInAccount, signOutAccount, updatePost } from '../appwrite/api';
+import {
+    createPost,
+    createUserAccount,
+    deletePost,
+    deleteSavedPost,
+    getCurrentUser,
+    getPostById,
+    getRecentPosts,
+    getUserPosts,
+    getUsers,
+    likePost,
+    savePost,
+    searchPosts,
+    signInAccount,
+    signOutAccount,
+    updatePost,
+    getInfinitePosts
+} from '../appwrite/api';
 import { NewPost, NewUser, UpdatePost } from '@/types';
 import { QUERY_KEYS } from './queryKeys';
 
@@ -226,6 +243,43 @@ export const useGetUserPosts = (userId?: string) => {
         enabled: !!userId,
     });
 };
+
+/**
+ * A hook that fetches infinite posts using useInfiniteQuery.
+ *
+ * @return {QueryResult} The result of the query.
+ */
+export const useGetPosts = () => {
+    return useInfiniteQuery({
+        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+        queryFn: getInfinitePosts as any,
+        getNextPageParam: (lastPage: any) => {
+            // If there's no data, there are no more pages.
+            if (lastPage && lastPage.documents.length === 0) {
+                return null;
+            }
+
+            // Use the $id of the last document as the cursor.
+            const lastId = lastPage.documents[lastPage?.documents.length - 1].$id;
+            return lastId;
+        },
+    });
+};
+
+/**
+ * Returns the search results for a given search term.
+ *
+ * @param {string} searchTerm - The term to search for in the posts.
+ * @return {Query} The search results as a query object.
+ */
+export const useSearchPosts = (searchTerm: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.SEARCH_POSTS, searchTerm],
+        queryFn: () => searchPosts(searchTerm),
+        enabled: !!searchTerm,
+    });
+};
+
 
 // ============================================================
 // USER QUERIES
